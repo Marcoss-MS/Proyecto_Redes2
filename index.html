@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formulario de Contacto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #121212, #1e1e1e);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #ccc;
+    }
+
+    .container {
+      background-color: #222831;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      max-width: 480px;
+      width: 100%;
+      transition: all 0.3s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 600;
+      color: #00adb5;
+      text-shadow: 0 0 10px #00adb5aa;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+      color: #eeeeee;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #393e46;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      background-color: #393e46;
+      color: #eeeeee;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      resize: vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #bbb;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #00adb5;
+      box-shadow: 0 0 8px #00adb5cc;
+      background-color: #444b56;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #00adb5;
+      color: #222831;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px #00adb5aa;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #028f96;
+      box-shadow: 0 6px 18px #028f9688;
+    }
+
+    #respuesta {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 16px;
+      min-height: 24px;
+      user-select: none;
+      color: #00adb5;
+    }
+
+    .error {
+      color: #ff6b6b;
+      text-shadow: 0 0 5px #ff6b6baa;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📬 Contáctanos</h2>
+    <form id="contactForm" autocomplete="off" novalidate>
+      <label for="nombre">Nombre</label>
+      <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo" />
+
+      <label for="email">Correo Electrónico</label>
+      <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com" />
+
+      <label for="mensaje">Mensaje</label>
+      <textarea id="mensaje" name="mensaje" rows="5" required placeholder="Escribe tu mensaje aquí..."></textarea>
+
+      <button type="submit">Enviar Mensaje</button>
+    </form>
+
+    <p id="respuesta"></p>
+  </div>
+
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const data = {
+        nombre: document.getElementById('nombre').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        mensaje: document.getElementById('mensaje').value.trim()
+      };
+
+      const respuesta = document.getElementById('respuesta');
+      respuesta.classList.remove('error');
+      respuesta.textContent = "Enviando...";
+
+      fetch('http://localhost:3000/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Error en el servidor');
+        return res.json();
+      })
+      .then(json => {
+        respuesta.textContent = '✅ Mensaje enviado correctamente';
+        this.reset();
+      })
+      .catch(err => {
+        respuesta.textContent = '❌ Ocurrió un error al enviar el mensaje';
+        respuesta.classList.add('error');
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
