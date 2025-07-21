@@ -5,117 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Formulario de Contacto</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #121212, #1e1e1e);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #ccc;
-    }
-
-    .container {
-      background-color: #222831;
-      padding: 30px 40px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
-      max-width: 480px;
-      width: 100%;
-      transition: all 0.3s ease-in-out;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-      font-weight: 600;
-      color: #00adb5;
-      text-shadow: 0 0 10px #00adb5aa;
-    }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 8px;
-      color: #eeeeee;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #393e46;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 16px;
-      background-color: #393e46;
-      color: #eeeeee;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      resize: vertical;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: #bbb;
-    }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #00adb5;
-      box-shadow: 0 0 8px #00adb5cc;
-      background-color: #444b56;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background-color: #00adb5;
-      color: #222831;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 17px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px #00adb5aa;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #028f96;
-      box-shadow: 0 6px 18px #028f9688;
-    }
-
-    #respuesta {
-      text-align: center;
-      margin-top: 15px;
-      font-weight: 600;
-      font-size: 16px;
-      min-height: 24px;
-      user-select: none;
-      color: #00adb5;
-    }
-
-    .error {
-      color: #ff6b6b;
-      text-shadow: 0 0 5px #ff6b6baa;
-    }
-
-    @media (max-width: 500px) {
-      .container {
-        padding: 25px 20px;
-      }
-    }
+    .error { color: red; }
+    .success { color: green; }
+    .message-box { margin-top: 1rem; border: 1px solid #ccc; padding: 0.5rem; max-height: 200px; overflow-y: auto; font-family: monospace; background: #f9f9f9; }
+    label { display: block; margin-top: 1rem; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>📬 Contáctanos</h2>
+
     <form id="contactForm" autocomplete="off" novalidate>
       <label for="nombre">Nombre</label>
       <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo" />
@@ -130,9 +31,45 @@
     </form>
 
     <p id="respuesta"></p>
+
+    <hr />
+
+    <h3>📋 Ver todos los mensajes</h3>
+    <button id="btnGet">Mostrar mensajes</button>
+    <pre id="mensajesList" class="message-box"></pre>
+
+    <hr />
+
+    <h3>✏️ Actualizar mensaje</h3>
+    <form id="updateForm" autocomplete="off" novalidate>
+      <label for="updateId">ID del mensaje a actualizar</label>
+      <input type="number" id="updateId" name="updateId" required placeholder="ID" />
+
+      <label for="updateNombre">Nuevo nombre</label>
+      <input type="text" id="updateNombre" name="updateNombre" placeholder="Nuevo nombre" />
+
+      <label for="updateEmail">Nuevo email</label>
+      <input type="email" id="updateEmail" name="updateEmail" placeholder="Nuevo email" />
+
+      <label for="updateMensaje">Nuevo mensaje</label>
+      <textarea id="updateMensaje" name="updateMensaje" rows="3" placeholder="Nuevo mensaje"></textarea>
+
+      <button type="submit">Actualizar Mensaje</button>
+    </form>
+
+    <p id="updateRespuesta"></p>
+
+    <hr />
+
+    <h3>🗑️ Eliminar mensaje</h3>
+    <label for="deleteId">ID del mensaje a eliminar</label>
+    <input type="number" id="deleteId" name="deleteId" placeholder="ID" />
+    <button id="btnDelete">Eliminar Mensaje</button>
+    <p id="deleteRespuesta"></p>
   </div>
 
   <script>
+    // Enviar nuevo mensaje (POST)
     document.getElementById('contactForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -156,12 +93,121 @@
         return res.json();
       })
       .then(json => {
-        respuesta.textContent = '✅ Mensaje enviado correctamente';
+        respuesta.textContent = '✅ Mensaje enviado correctamente (ID: ' + json.id + ')';
+        respuesta.classList.add('success');
         this.reset();
       })
       .catch(err => {
         respuesta.textContent = '❌ Ocurrió un error al enviar el mensaje';
         respuesta.classList.add('error');
+        console.error(err);
+      });
+    });
+
+    // Mostrar todos los mensajes (GET)
+    document.getElementById('btnGet').addEventListener('click', () => {
+      const mensajesList = document.getElementById('mensajesList');
+      mensajesList.textContent = "Cargando mensajes...";
+
+      fetch('http://localhost:3000/api/contacto')
+        .then(res => {
+          if (!res.ok) throw new Error('Error al obtener mensajes');
+          return res.json();
+        })
+        .then(data => {
+          if (data.length === 0) {
+            mensajesList.textContent = "No hay mensajes registrados.";
+            return;
+          }
+          mensajesList.textContent = data.map(m => 
+            `ID: ${m.id}\nNombre: ${m.nombre}\nEmail: ${m.email}\nMensaje: ${m.mensaje}\n---`
+          ).join('\n\n');
+        })
+        .catch(err => {
+          mensajesList.textContent = '❌ Error al cargar mensajes';
+          console.error(err);
+        });
+    });
+
+    // Actualizar mensaje (PATCH)
+    document.getElementById('updateForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('updateId').value.trim();
+      if (!id) {
+        alert("El ID es obligatorio para actualizar.");
+        return;
+      }
+
+      const data = {};
+      const nombre = document.getElementById('updateNombre').value.trim();
+      const email = document.getElementById('updateEmail').value.trim();
+      const mensaje = document.getElementById('updateMensaje').value.trim();
+
+      if (nombre) data.nombre = nombre;
+      if (email) data.email = email;
+      if (mensaje) data.mensaje = mensaje;
+
+      if (Object.keys(data).length === 0) {
+        alert("Debe ingresar al menos un campo para actualizar.");
+        return;
+      }
+
+      data.id = Number(id);
+
+      const updateRespuesta = document.getElementById('updateRespuesta');
+      updateRespuesta.textContent = "Actualizando...";
+
+      fetch('http://localhost:3000/api/contacto', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al actualizar');
+        return res.json();
+      })
+      .then(json => {
+        updateRespuesta.textContent = '✅ ' + (json.mensaje || 'Actualizado correctamente');
+        updateRespuesta.classList.remove('error');
+        updateRespuesta.classList.add('success');
+        this.reset();
+      })
+      .catch(err => {
+        updateRespuesta.textContent = '❌ Error al actualizar mensaje';
+        updateRespuesta.classList.add('error');
+        console.error(err);
+      });
+    });
+
+    // Eliminar mensaje (DELETE)
+    document.getElementById('btnDelete').addEventListener('click', () => {
+      const id = document.getElementById('deleteId').value.trim();
+      const deleteRespuesta = document.getElementById('deleteRespuesta');
+
+      if (!id) {
+        alert("Debe ingresar el ID para eliminar.");
+        return;
+      }
+
+      deleteRespuesta.textContent = "Eliminando...";
+
+      fetch(`http://localhost:3000/api/contacto?id=${id}`, {
+        method: 'DELETE',
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al eliminar');
+        return res.json();
+      })
+      .then(json => {
+        deleteRespuesta.textContent = '✅ ' + (json.mensaje || 'Eliminado correctamente');
+        deleteRespuesta.classList.remove('error');
+        deleteRespuesta.classList.add('success');
+        document.getElementById('deleteId').value = '';
+      })
+      .catch(err => {
+        deleteRespuesta.textContent = '❌ Error al eliminar mensaje';
+        deleteRespuesta.classList.add('error');
         console.error(err);
       });
     });
